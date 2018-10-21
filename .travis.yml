@@ -1,31 +1,47 @@
 sudo: required
+
 git:
   depth: 3
+
 language: node_js
+
 node_js:
   - "6"
   - "8"
   - "10"
+
+before_install:
+  - export NPM_VER_MAJ=$(npm -v | cut -d. -f1)
+  - if [[ "$NPM_VER_MAJ" -lt "6" ]]; then export NPM_CACHE_FOLDER=./node_modules; fi
+  - if [[ "$NPM_VER_MAJ" -ge "6" ]]; then export NPM_CACHE_FOLDER=$HOME/.npm; fi
+
 install:
   - bundle install --deployment --jobs=3 --retry=3 --clean
-  - npm install
+  - if [[ "$NPM_VER_MAJ" -lt "6" ]]; then npm install; fi
+  - if [[ "$NPM_VER_MAJ" -ge "6" ]]; then npm ci; fi
+
 script:
   - npm test
   - if [ "$TRAVIS_NODE_VERSION" = "10" ]; then npm run check-broken-links; fi
+
 after_success:
   - if [ "$TRAVIS_NODE_VERSION" = "10" ]; then npm run coveralls; fi
+
 stages:
   - test
   - name: browser
     if: type = push
+
 jobs:
   include:
     - stage: browser
       node_js: 10
       script: if ! git log --format=%B --no-merges -n 1 | grep '\[skip browser\]'; then npm run js-test-cloud; fi
+
 cache:
   directories:
-    - node_modules
+    - $NPM_CACHE_FOLDER
     - vendor/bundle
+
 notifications:
   email: false
