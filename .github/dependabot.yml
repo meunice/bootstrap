@@ -1,0 +1,17 @@
+version: 2
+registries:
+  git-github-com:
+    type: git
+    url: https://Github.com
+    username: Meunice
+    password: "${{secrets.GIT_GITHUB_COM_PASSWORD}}"
+
+updates:
+- package-ecosystem: github-actions
+  directory: "/"
+  schedule:
+    interval: weekly
+    timezone: America/New_York
+  open-pull-requests-limit: 10
+  registries:
+  - git-github-com
